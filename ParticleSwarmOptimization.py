@@ -1,3 +1,4 @@
+#coding=utf-8
 import numpy as np
 import OptimizationFuncs as of
 num_elements = 100
