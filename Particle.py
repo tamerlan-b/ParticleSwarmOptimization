@@ -3,7 +3,7 @@ import numpy as np
 
 
 class Particle:
-    
+    @staticmethod
     def generate_particles(number, xmin, xmax, ymin, ymax):
         particles = []
         # Генерируем частицы в случайных точках
