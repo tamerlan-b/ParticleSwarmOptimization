@@ -1,9 +1,9 @@
 #coding=utf-8
 import numpy as np
 import OptimizationFuncs as of
+
 num_elements = 100
 
-# ObjectiveFunc = of.Matyas()
 ObjectiveFunc = of.Rastrigin()
 
 [xmin, xmax, ymin, ymax] = ObjectiveFunc.limits #[-5.0, 5.0, -5.0, 5.0]
@@ -17,19 +17,10 @@ fig = plt.figure(figsize=(6,5))
 left, bottom, width, height = 0.1, 0.1, 0.8, 0.8
 ax = fig.add_axes([left, bottom, width, height]) 
 
-
-'''
-ax.set_title('Contour Plot')
-ax.set_xlabel('x')
-ax.set_ylabel('y')
-'''
-
 import matplotlib.animation as animation
 
 # Import particle class
 from Particle import Particle
-#from OptimizationFuncs import Functions
-
 
 num_particles = 10
 particles = Particle.generate_particles(num_particles, xmin, xmax, ymin, ymax)
@@ -52,9 +43,6 @@ def pso_step(func):
     for p in particles:
         p.step(x_swarm, y_swarm, func)
 
-# ObjectiveFunc = Functions.Rastrigin
-#ObjectiveFunc = of.Rastrigin()
-
 Z = ObjectiveFunc(X,Y)
 
 def init():
@@ -64,7 +52,7 @@ def init():
 
 def update_plot(i):
     ax.clear()
-    ax.set_title('Rastrigin function')
+    ax.set_title('Contour Plot')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     cp = ax.contourf(X, Y, Z, cmap = plt.cm.terrain)
@@ -83,8 +71,6 @@ def update_plot(i):
     pso_step(ObjectiveFunc)
 
 ani = animation.FuncAnimation(fig, update_plot, init_func=init, frames=30, interval=300)
-# writer = animation.PillowWriter(fps=5)
-# ani.save("ani.gif", writer=writer)
 p = plt.show()
 
 
