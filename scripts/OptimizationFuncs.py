@@ -1,37 +1,7 @@
 #coding=utf-8
 import numpy as np
 
-
-class Functions:
-
-    # Функция Растригина
-    @staticmethod
-    def Rastrigin(X, Y):
-        Z = 20 + X**2 + Y**2 - 10*(np.cos(2 * np.pi * X) + np.cos(2 * np.pi * Y))
-        return Z
-
-    # Сферическая функция
-    @staticmethod
-    def Sphere(X, Y):
-        Z = X**2 + Y**2
-        return Z
-
-    # Функция Экли
-    @staticmethod
-    def Ackley(X, Y):
-        Z = -20 * np.exp(-0.2 * np.sqrt(0.5*(X**2 + Y**2)))
-        Z += -np.exp(0.5 * (np.cos(2*np.pi*X) + np.cos(2*np.pi*Y)))
-        Z += np.e + 20
-        return Z
-
-    # Функция Матиаса
-    @staticmethod
-    def Matyas(X, Y):
-        Z = 0.26 * (X**2 + Y**2) - 0.48 * X* Y
-        return Z
-
 class Function:
-    
     def call(self, x,y):
         pass
     def __call__(self, x,y):
