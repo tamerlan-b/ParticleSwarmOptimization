@@ -3,7 +3,8 @@ import numpy as np
 import OptimizationFuncs as of
 num_elements = 100
 
-ObjectiveFunc = of.Matyas()
+# ObjectiveFunc = of.Matyas()
+ObjectiveFunc = of.Rastrigin()
 
 [xmin, xmax, ymin, ymax] = ObjectiveFunc.limits #[-5.0, 5.0, -5.0, 5.0]
 xlist = np.linspace(xmin, xmax, num_elements)
@@ -63,7 +64,7 @@ def init():
 
 def update_plot(i):
     ax.clear()
-    ax.set_title('Contour Plot')
+    ax.set_title('Rastrigin function')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     cp = ax.contourf(X, Y, Z, cmap = plt.cm.terrain)
@@ -81,24 +82,9 @@ def update_plot(i):
     # Делаем шаг алгоритма
     pso_step(ObjectiveFunc)
 
-'''
-eps = 0.5
-dist_to_min = np.sqrt(np.abs(x_swarm - ObjectiveFunc.x_min)**2 + np.abs(y_swarm - ObjectiveFunc.y_min)**2)
-
-distances = []
-iterations = 0
-max_iterations = 500
-while dist_to_min > eps and iterations <= max_iterations:
-    pso_step(ObjectiveFunc)
-    dist_to_min = np.sqrt(np.abs(x_swarm - ObjectiveFunc.x_min)**2 + np.abs(y_swarm - ObjectiveFunc.y_min)**2)
-    distances.append(dist_to_min)
-    iterations += 1
-    print('Dist: ' + str(dist_to_min))
-plt.grid(True)
-plt.plot(np.arange(len(distances)), distances)
-'''
-
-ani = animation.FuncAnimation(fig, update_plot, init_func=init,interval=300)
+ani = animation.FuncAnimation(fig, update_plot, init_func=init, frames=30, interval=300)
+# writer = animation.PillowWriter(fps=5)
+# ani.save("ani.gif", writer=writer)
 p = plt.show()
 
 
