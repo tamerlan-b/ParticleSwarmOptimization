@@ -83,33 +83,34 @@ class Particle:
 class OptimizerPSO:
     """PSO оптимизатор"""
 
-    def generate_particles(self):
-        """Генерирует рой частиц"""
+    def generate_particles(self, num_particles):
+        """Генерирует рой частиц
+
+        Args:
+            num_particles (int): количество частиц в рое
+        """
+        # Количество частиц
+        self.num_particles = num_particles
         self.particles = []
         for i in range(self.num_particles):
             p = Particle(self.xmin, self.xmax, self.ymin, self.ymax)
             self.particles.append(p)
 
-    def __init__(self, num_particles, optimization_func):
+    def __init__(self, optimization_func):
         """Создает PSO оптимизатор
 
         Args:
-            num_particles (int): количество частиц в рое
             optimization_func (Function): оптимизируемая функция
         """
         # Оптимизируемая функция
         self.objective = optimization_func
         # Границы поиска
         [self.xmin, self.xmax, self.ymin, self.ymax] = self.objective.limits
-        # Количество частиц
-        self.num_particles = num_particles
+        
         # Точка минимума
         self.best_x = float("inf")
         self.best_y = float("inf")
         self.best_val = float("inf")
-
-        # Генерируем рой
-        self.generate_particles()
 
     def step(self):
         """Делаем шаг алгоритма"""
