@@ -11,6 +11,8 @@ class Function:
         return z
     def reset_counter(self):
         self.num_of_calls = 0
+    def __str__(self):
+        return type(self).__name__
 
 class Rastrigin(Function):
 

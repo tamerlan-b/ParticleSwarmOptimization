@@ -45,9 +45,8 @@ def init():
 
 def update_plot(i):
     ax.clear()
-    # Имя функции
-    # TODO: переопределить метод str()
-    ax.set_title('{0} function'.format(type(ObjectiveFunc).__name__))
+    ax.set_title('{0} function'.format(ObjectiveFunc))
+
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     cp = ax.contourf(X, Y, Z, cmap = plt.cm.terrain)
