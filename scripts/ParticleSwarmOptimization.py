@@ -7,63 +7,71 @@ import OptimizationFuncs as of
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-
-# TODO: отделить визуализацию от алгоритма
-
-
-ObjectiveFunc = of.Rastrigin()
-
-# Формирование сетки для рисования функции
-num_elements = 100
-[xmin, xmax, ymin, ymax] = ObjectiveFunc.limits #[-5.0, 5.0, -5.0, 5.0]
-xlist = np.linspace(xmin, xmax, num_elements)
-ylist = np.linspace(ymin, ymax, num_elements)
-X, Y = np.meshgrid(xlist, ylist)
-
-# Создаем картинку для функции
-fig = plt.figure(figsize=(6,5))
-left, bottom, width, height = 0.1, 0.1, 0.8, 0.8
-ax = fig.add_axes([left, bottom, width, height]) 
+class Visualizer:
+    def __init__(self, optimizer, num_elements=100):
+        # Формирование сетки для рисования функции
+        [xmin, xmax, ymin, ymax] = optimizer.objective.limits
+        xlist = np.linspace(xmin, xmax, num_elements)
+        ylist = np.linspace(ymin, ymax, num_elements)
+        self.X, self.Y = np.meshgrid(xlist, ylist)
+        # Создаем картинку для функции
+        self.fig = plt.figure(figsize=(6,5))
+        left, bottom, width, height = 0.1, 0.1, 0.8, 0.8
+        self.ax = self.fig.add_axes([left, bottom, width, height])
+        self.cmap = plt.cm.terrain
+        # Задаем оптимизатор
+        self.optimizer = optimizer
+        self.Z = self.optimizer.objective(self.X,self.Y)
 
 
-# Создаем рой частиц
-num_particles = 10
+    def init(self):
+        """Рисует функцию при старте анимации"""
 
-# Минимальная точка, найденная роем
-x_swarm = 1000
-y_swarm = 1000
-min_swarm = 100000
+        self.ax.clear()
+        cp = self.ax.contourf(self.X, self.Y, self.Z, cmap = self.cmap)
+        plt.colorbar(cp)
 
-Z = ObjectiveFunc(X,Y)
+    def update_plot(self, i):
+        """Рисует целевую функцию и положение частиц при обновлении анимации,
+        выводит целевую точку в консоль
 
-pso = OptimizerPSO(num_particles, ObjectiveFunc)
+        Args:
+            i (int): номер вызова функции
+        """
+        self.ax.clear()
+        cp = self.ax.contourf(self.X, self.Y, self.Z, cmap = self.cmap)
+        
+        # Добавляем название функции
+        self.ax.set_title('{0} function'.format(self.optimizer.objective))
+        # Подписываем оси координат
+        self.ax.set_xlabel('x')
+        self.ax.set_ylabel('y')
+        
+        # Рисуем частицы на графике
+        swarm_position = [[p.x, p.y] for p in self.optimizer.particles]
+        particles_x, particles_y = list(zip(*swarm_position))
+        line = self.ax.scatter(particles_x, particles_y, marker='*', color='black')
 
-def init():
-    ax.clear()
-    cp = ax.contourf(X, Y, Z, cmap = plt.cm.terrain)
-    plt.colorbar(cp)
+        # TODO: только если выставлен флаг verbose
+        print("Swarm min: ({0}, {1}) : {2}".format(self.optimizer.best_x, self.optimizer.best_y, self.optimizer.best_val))
+        
+        # Делаем шаг алгоритма
+        self.optimizer.step()
 
-def update_plot(i):
-    ax.clear()
-    ax.set_title('{0} function'.format(ObjectiveFunc))
+    def run_animation(self, frames=30, interval=300):
+        ani = animation.FuncAnimation(self.fig, self.update_plot, init_func=self.init, frames=frames, interval=interval)
+        plt.show()
 
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    cp = ax.contourf(X, Y, Z, cmap = plt.cm.terrain)
-    
-    swarm_position = [[p.x, p.y] for p in pso.particles]
-    particles_x, particles_y = list(zip(*swarm_position))
-    line = ax.scatter(particles_x, particles_y, marker='*', color='black')
-
-    # TODO: только если выставлен флаг verbose
-    print("Swarm min: ({0}, {1}) : {2}".format(pso.best_x, pso.best_y, pso.best_val))
-    
-    # Делаем шаг алгоритма
-    pso.step()
 
 if __name__ == "__main__":
-    ani = animation.FuncAnimation(fig, update_plot, init_func=init, frames=30, interval=300)
-    p = plt.show()
+    # Создаем тестовую функцию
+    objective = of.Rastrigin()
+    # Создаем PSO оптимизатор
+    pso_optimizer = OptimizerPSO(num_particles=20, optimization_func=objective)
+    # Создаем визуализатор
+    vis = Visualizer(pso_optimizer)
+    # Запускаем анимацию оптимизации
+    vis.run_animation()
 
 
 
