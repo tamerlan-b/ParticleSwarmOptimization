@@ -52,7 +52,8 @@ def init():
 
 def update_plot(i):
     ax.clear()
-    ax.set_title('Contour Plot')
+    # Имя функции
+    ax.set_title('{0} function'.format(type(ObjectiveFunc).__name__))
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     cp = ax.contourf(X, Y, Z, cmap = plt.cm.terrain)
@@ -70,8 +71,9 @@ def update_plot(i):
     # Делаем шаг алгоритма
     pso_step(ObjectiveFunc)
 
-ani = animation.FuncAnimation(fig, update_plot, init_func=init, frames=30, interval=300)
-p = plt.show()
+if __name__ == "__main__":
+    ani = animation.FuncAnimation(fig, update_plot, init_func=init, frames=30, interval=300)
+    p = plt.show()
 
 
 
