@@ -1,23 +1,24 @@
 #!/usr/bin/env python
 #coding=utf-8
 
-import numpy as np
-
+import random
 
 class Particle:
-    @staticmethod
-    def generate_particles(number, xmin, xmax, ymin, ymax):
-        particles = []
-        # Генерируем частицы в случайных точках
-        for i in range(number):
-            p = Particle(xmin, xmax, ymin, ymax)
-            particles.append(p)
-        return particles
+    """Частица роя"""
+
     def __init__(self, xmin, xmax, ymin, ymax):
-        self.x = xmin + np.random.sample() * (xmax - xmin)
-        self.y = ymin + np.random.sample() * (ymax - ymin)
-        self.r_m = np.random.sample()
-        self.r_g = np.random.sample()
+        """Создаем частицу и инициализируем начальные значения
+
+        Args:
+            xmin (float): нижняя граница по x
+            xmax (float): верхняя граница по y
+            ymin (float): нижняя граница по x
+            ymax (float): верхняя граница по y
+        """
+        self.x = random.uniform(xmax, xmin)
+        self.y = random.uniform(ymax, ymin)
+        self.r_m = random.random()
+        self.r_g = random.random()
         
         self.f_m = 0.6
         self.f_g = 0.4
@@ -34,8 +35,13 @@ class Particle:
         self.ymin = ymin
         self.ymax = ymax
         
-    # Вычисление скорости        
     def calc_vel(self, x_swarm, y_swarm):
+        """Вычисляем скорость частицы
+
+        Args:
+            x_swarm (float): x-координата роевого минимума
+            y_swarm (float): y-координата роевого минимума
+        """
         vel_x = self.vel_x * self.w
         vel_x += self.f_m * self.r_m * (self.x_best - self.x)
         vel_x += self.f_g * self.r_g * (x_swarm - self.x)
@@ -48,6 +54,13 @@ class Particle:
         self.vel_y = vel_y
 
     def step(self, x_swarm, y_swarm, func):
+        """Делаем шаг частицей роя
+
+        Args:
+            x_swarm (float): x-координата роевого минимума
+            y_swarm (float): y-координата роевого минимума
+            func (Function): оптимизируемая функция
+        """
         # Вычисляем скорость
         self.calc_vel(x_swarm, y_swarm)
         # Вычисляем новое положение
@@ -66,4 +79,47 @@ class Particle:
                 if new_value <= old_value:
                     self.x_best = x_new
                     self.y_best = y_new
-               
+
+class OptimizerPSO:
+    """PSO оптимизатор"""
+
+    def generate_particles(self):
+        """Генерирует рой частиц"""
+        self.particles = []
+        for i in range(self.num_particles):
+            p = Particle(self.xmin, self.xmax, self.ymin, self.ymax)
+            self.particles.append(p)
+
+    def __init__(self, num_particles, optimization_func):
+        """Создает PSO оптимизатор
+
+        Args:
+            num_particles (int): количество частиц в рое
+            optimization_func (Function): оптимизируемая функция
+        """
+        # Оптимизируемая функция
+        self.objective = optimization_func
+        # Границы поиска
+        [self.xmin, self.xmax, self.ymin, self.ymax] = self.objective.limits
+        # Количество частиц
+        self.num_particles = num_particles
+        # Точка минимума
+        self.best_x = float("inf")
+        self.best_y = float("inf")
+        self.best_val = float("inf")
+
+        # Генерируем рой
+        self.generate_particles()
+
+    def step(self):
+        """Делаем шаг алгоритма"""
+        # Находим лучшую точку роя
+        for p in self.particles:
+            value = self.objective(p.x, p.y)
+            if value < self.best_val:
+                self.best_x = p.x
+                self.best_y = p.y
+                self.best_val = value
+        # Делаем шаг роем
+        for p in self.particles:
+            p.step(self.best_x, self.best_y, self.objective)
