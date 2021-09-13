@@ -7,12 +7,22 @@
 * python >= 2.7
 * matplotlib
 * numpy
+* [fire](https://github.com/google/python-fire)
 
 ### Запуск программы:  
 В терминале в папке *scripts*:  
 ```bash
 python ParticleSwarmOptimization.py
 ```  
+Можно указать количество частиц и вывод текущего минимума:  
+```bash  
+python3 ParticleSwarmOptimization.py --num_particles=20 --verbose=True
+```  
+Или проще:  
+```bash  
+python3 ParticleSwarmOptimization.py 20 True
+```  
+
 **Примечание.** При запуске из-под linux могут потребоваться права доступа на выполнение файлов .py. Это делается командой:
 ```bash
 chmod +x scripts/*.py
