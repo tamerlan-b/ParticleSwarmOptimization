@@ -1,6 +1,14 @@
+#!/usr/bin/env python
 #coding=utf-8
+
 import numpy as np
+from Particle import Particle
 import OptimizationFuncs as of
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+
+
+# Import particle class
 
 num_elements = 100
 
@@ -11,16 +19,12 @@ xlist = np.linspace(xmin, xmax, num_elements)
 ylist = np.linspace(ymin, ymax, num_elements)
 X, Y = np.meshgrid(xlist, ylist)
 
-import matplotlib.pyplot as plt
 
 fig = plt.figure(figsize=(6,5))
 left, bottom, width, height = 0.1, 0.1, 0.8, 0.8
 ax = fig.add_axes([left, bottom, width, height]) 
 
-import matplotlib.animation as animation
 
-# Import particle class
-from Particle import Particle
 
 num_particles = 10
 particles = Particle.generate_particles(num_particles, xmin, xmax, ymin, ymax)
