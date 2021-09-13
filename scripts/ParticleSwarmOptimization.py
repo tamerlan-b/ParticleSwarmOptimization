@@ -1,78 +1,121 @@
-#coding=utf-8
+#!/usr/bin/env python
+# coding=utf-8
+
+import fire
 import numpy as np
 import OptimizationFuncs as of
-
-num_elements = 100
-
-ObjectiveFunc = of.Rastrigin()
-
-[xmin, xmax, ymin, ymax] = ObjectiveFunc.limits #[-5.0, 5.0, -5.0, 5.0]
-xlist = np.linspace(xmin, xmax, num_elements)
-ylist = np.linspace(ymin, ymax, num_elements)
-X, Y = np.meshgrid(xlist, ylist)
-
 import matplotlib.pyplot as plt
-
-fig = plt.figure(figsize=(6,5))
-left, bottom, width, height = 0.1, 0.1, 0.8, 0.8
-ax = fig.add_axes([left, bottom, width, height]) 
-
+from Particle import OptimizerPSO
 import matplotlib.animation as animation
 
-# Import particle class
-from Particle import Particle
+class Visualizer:
+    """Класс для визуализации работы алгоритма PSO"""
 
-num_particles = 10
-particles = Particle.generate_particles(num_particles, xmin, xmax, ymin, ymax)
+    def __init__(self, optimizer, num_elements=100):
+        # Формирование сетки для рисования функции
+        [xmin, xmax, ymin, ymax] = optimizer.objective.limits
+        xlist = np.linspace(xmin, xmax, num_elements)
+        ylist = np.linspace(ymin, ymax, num_elements)
+        self.X, self.Y = np.meshgrid(xlist, ylist)
+        # Создаем картинку для функции
+        self.fig = plt.figure(figsize=(6, 5))
+        left, bottom, width, height = 0.1, 0.1, 0.8, 0.8
+        self.ax = self.fig.add_axes([left, bottom, width, height])
+        self.cmap = plt.cm.terrain
+        # Задаем оптимизатор
+        self.optimizer = optimizer
+        self.Z = self.optimizer.objective(self.X, self.Y)
 
-x_swarm = 1000
-y_swarm = 1000
-min_swarm = 100000
+    def init(self):
+        """Рисует функцию при старте анимации"""
+        self.ax.clear()
+        cp = self.ax.contourf(self.X, self.Y, self.Z, cmap=self.cmap)
+        plt.colorbar(cp)
 
-def pso_step(func):
-    global min_swarm, y_swarm, x_swarm
-    # Находим лучшую точку роя
-    for p in particles:
-        value = func(p.x, p.y)
-        if value < min_swarm:
-            x_swarm = p.x
-            y_swarm = p.y
-            min_swarm = value
+    def draw_particles(self):
+        """Рисует частицы на графике"""
+        swarm_position = [[p.x, p.y] for p in self.optimizer.particles]
+        particles_x, particles_y = list(zip(*swarm_position))
+        line = self.ax.scatter(particles_x, particles_y, marker="*", color="black")
 
-    # Делаем шаг роем
-    for p in particles:
-        p.step(x_swarm, y_swarm, func)
+    def decorator(func):
+        """Декартор, выводящий точку минимума
 
-Z = ObjectiveFunc(X,Y)
+        Args:
+            func (Callable): декорируемая функцция
+        """
 
-def init():
-    ax.clear()
-    cp = ax.contourf(X, Y, Z, cmap = plt.cm.terrain)
-    plt.colorbar(cp)
+        def wrapper(self, i):
+            func(self, i)
+            if self.verbose:
+                print(
+                    "Swarm min: ({0}, {1}) : {2}".format(
+                        round(self.optimizer.best_x, 3),
+                        round(self.optimizer.best_y, 3),
+                        round(self.optimizer.best_val, 3),
+                    )
+                )
 
-def update_plot(i):
-    ax.clear()
-    ax.set_title('Contour Plot')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    cp = ax.contourf(X, Y, Z, cmap = plt.cm.terrain)
+        return wrapper
 
-    # Рисуем частицы на графике
-    particles_x = []
-    particles_y = []
-    for p in particles:
-        particles_x.append(p.x)
-        particles_y.append(p.y)
-    line = ax.scatter(particles_x, particles_y, marker='*', color='black')
+    def prepare_plot(self):
+        """Рисует график функции и добавляет подписи к нему"""
+        self.ax.clear()
+        cp = self.ax.contourf(self.X, self.Y, self.Z, cmap=self.cmap)
 
-    print("Swarm min: (%d, %d) : %d"%(x_swarm, y_swarm, min_swarm))
-    
-    # Делаем шаг алгоритма
-    pso_step(ObjectiveFunc)
+        # Добавляем название функции
+        self.ax.set_title("{0} function".format(self.optimizer.objective))
+        # Подписываем оси координат
+        self.ax.set_xlabel("x")
+        self.ax.set_ylabel("y")
 
-ani = animation.FuncAnimation(fig, update_plot, init_func=init, frames=30, interval=300)
-p = plt.show()
+    @decorator
+    def update_plot(self, i):
+        """Рисует целевую функцию и положение частиц при обновлении анимации,
+        выводит целевую точку в консоль
+
+        Args:
+            i (int): номер вызова функции
+        """
+        # Рисуем график
+        self.prepare_plot()
+
+        # Рисуем частицы на графике
+        self.draw_particles()
+
+        # Делаем шаг алгоритма
+        self.optimizer.step()
+
+    def run_animation(self, frames=30, interval=300, verbose=True):
+        self.verbose = verbose
+        ani = animation.FuncAnimation(
+            self.fig,
+            self.update_plot,
+            init_func=self.init,
+            frames=frames,
+            interval=interval,
+        )
+        plt.show()
 
 
+def run_cli(num_particles=15, verbose=False):
+    """Запускает алгоритм PSO вместе с визуализацией
+
+    Args:
+        num_particles (int, optional): количество частиц в рое. Defaults to 15.
+        verbose (bool, optional): вывод информации о текущем найденном минимуме. Defaults to False.
+    """
+    # Создаем тестовую функцию
+    objective = of.Rastrigin()
+    # Создаем PSO оптимизатор
+    pso_optimizer = OptimizerPSO(optimization_func=objective)
+    # Генерируем рой частиц
+    pso_optimizer.generate_particles(num_particles=num_particles)
+    # Создаем визуализатор
+    vis = Visualizer(pso_optimizer)
+    # Запускаем анимацию оптимизации
+    vis.run_animation(verbose=verbose)
 
 
+if __name__ == "__main__":
+    fire.Fire(run_cli)
